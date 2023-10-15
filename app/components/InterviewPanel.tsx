@@ -20,10 +20,10 @@ interface Candidate {
 
 const InterviewPanel: React.FC = () => {
     const [candidates, setCandidates] = useState<Candidate[]>([
-        { id: 1, name: 'John', rating: 4, status: InterviewStatus.Pending },
-        { id: 2, name: 'Jane', rating: 5, status: InterviewStatus.Approved, feedback: 'Good' },
-        { id: 3, name: 'Jack', rating: 3, status: InterviewStatus.Completed, feedback: 'Average. Need to practice conceptually' },
-        { id: 4, name: 'Jill', rating: 2, status: InterviewStatus.Rejected, feedback: 'Not good' }
+        { id: 1, name: 'Amit', rating: 4, status: InterviewStatus.Pending },
+        { id: 2, name: 'Akansha', rating: 5, status: InterviewStatus.Approved, feedback: 'Good' },
+        { id: 3, name: 'Rohan', rating: 3, status: InterviewStatus.Completed, feedback: 'Average. Need to practice conceptually' },
+        { id: 4, name: 'Smruti', rating: 2, status: InterviewStatus.Rejected, feedback: 'Not good' }
     ]);
 
     const [newCandidate, setNewCandidate] = useState<Candidate>({
@@ -34,34 +34,58 @@ const InterviewPanel: React.FC = () => {
         feedback: ''
     });
 
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+
     const addCandidate = (): void => {
         if (!newCandidate.name) {
             toast.error('Please enter a name');
             return;
         }
 
-        setCandidates([...candidates, newCandidate]);
-        setNewCandidate({
-            id: candidates.length + 1,
-            name: '',
-            rating: 1,
-            status: InterviewStatus.Pending,
-            feedback: '',
-        });
+        if (isEditing) {
+            const updatedCandidates = candidates.map((candidate) => candidate.id === newCandidate.id ? newCandidate : candidate);
+            setCandidates(updatedCandidates);
+            setIsEditing(false);
+            toast.success('Candidate updated successfully');
+            setNewCandidate({
+                id: candidates.length + 1,
+                name: '',
+                rating: 1,
+                status: InterviewStatus.Pending,
+                feedback: '',
+            });
+        } else {
+            setCandidates([...candidates, newCandidate]);
+            setNewCandidate({
+                id: candidates.length + 1,
+                name: '',
+                rating: 1,
+                status: InterviewStatus.Pending,
+                feedback: '',
+            });
+        }
     }
 
     const handleStatusChange = (id: number, status: InterviewStatus) => {
-        const updatedCandidates = candidates.map((candidate) =>
-            candidate.id === id ? { ...candidate, status } : candidate
-        );
+        const updatedCandidates = candidates.map((candidate) => candidate.id === id ? { ...candidate, status } : candidate);
         setCandidates(updatedCandidates);
     };
+
+    const deleteCandidate = (id: number) => {
+        const updatedList = candidates.filter(candidate => candidate.id !== id)
+        setCandidates(updatedList)
+    }
+
+    const editCandidatePer = (candidate: Candidate) => {
+        setIsEditing(true);
+        setNewCandidate(candidate);
+    }
 
     return (
         <main className='flex justify-center items-center'>
             <div className="p-4 text-center">
                 <h1 className="text-2xl font-semibold my-8">Candidate Tracker</h1>
-                <div className="mb-4">
+                <div className="mb-4 flex justify-between">
                     <input
                         type="text"
                         placeholder="Name"
@@ -101,12 +125,13 @@ const InterviewPanel: React.FC = () => {
                     </button>
                 </div>
                 <table className="w-full table-auto">
-                    <thead>
+                    <thead className='bg-slate-200 rounded-md'>
                         <tr>
                             <th className="px-4 py-2">Name</th>
                             <th className="px-4 py-2">Rating</th>
                             <th className="px-4 py-2">Status</th>
                             <th className="px-4 py-2">Feedback</th>
+                            <th className='px-4 py-2'>Options</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -127,7 +152,24 @@ const InterviewPanel: React.FC = () => {
                                         ))}
                                     </select>
                                 </td>
-                                <td className="px-4 py-2">{candidate.feedback}</td>
+                                <td className="px-4 py-2 flex justify-between">
+                                    <p className="text-left">
+                                        {candidate.feedback ? candidate.feedback : 'No feedback'}
+                                    </p>
+                                </td>
+                                <td className='px-4 py-2'>
+                                    <div className='flex justify-end'>
+                                        {(candidate.status === InterviewStatus.Approved || candidate.status === InterviewStatus.Completed || candidate.status === InterviewStatus.Rejected) && (
+                                            <button
+                                                className="bg-blue-500 text-white p-2 rounded ml-2"
+                                                onClick={() => editCandidatePer(candidate)}
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
+                                        <button onClick={() => deleteCandidate(candidate.id)} className='bg-red-500 text-white p-2 rounded ml-2'>Delete</button>
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
